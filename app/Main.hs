@@ -85,7 +85,7 @@ main = bool2sparql =<< execParser opts
   where
     opts = info (options <**> helper)
       ( fullDesc
-     <> progDesc "Print your query in SPARQL language"
+     <> progDesc "Input: your boolean query. Output: your query in SPARQL language"
      <> header "bool2sparql - DSL to translate boolean query to Sparql query." )
 
 
