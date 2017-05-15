@@ -6,7 +6,8 @@ import Options.Applicative
 import Data.Semigroup ((<>))
 
 -- import Safe (headMay)
-import Data.Bool2sparql (createQuery)
+import Data.Bool2sparql
+
 
 
 data Options = Options { query :: String
@@ -19,23 +20,25 @@ options = Options
         <$> strOption ( long "query"
                       <> short 'q'
                       <> metavar "TARGET"
-                      <> help "Query as boolean language."
+                      <> help "Enter your query with boolean language."
                        )
         
         <*> switch    ( long "count"
                       <> short 'c'
-                      <> help "Count (True) or False get"
+                      <> help "Option to count number of result only."
                        )
         
         <*> option auto ( long "Limit of results"
                         <> short 'l'
                         <> value 1000
                         <> metavar "INT"
+                        <> help "Maximum of document is the limit added to the query."
                          )
 
+
 bool2sparql :: Options -> IO ()
-bool2sparql (Options q False n) = putStrLn $ createQuery q n
-bool2sparql (Options q True  _) = putStrLn $ "count only" ++ q
+bool2sparql (Options q True  _) = putStrLn $ create Count q Nothing
+bool2sparql (Options q False n) = putStrLn $ create Get   q (Just n)
 
 
 main :: IO ()
