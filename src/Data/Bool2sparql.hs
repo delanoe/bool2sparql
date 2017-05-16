@@ -34,16 +34,19 @@ begin query = unlines (selectOrcount ++ body)
                           Get   -> ["select ?resource ?id ?title ?date ?abstract ?source where {"]
                           Count -> ["select count(?id) where {"]
 
-end_query :: Maybe Int -> String
-end_query n = unlines $ ["}"] ++ limit
+end_query :: Maybe Int -> Maybe Int -> String
+end_query offset limit = unlines $ ["}"] ++ offset' ++ limit'
         where
-            limit = case n of
+            limit' = case limit of
                       Nothing -> [""]
-                      Just n' -> ["limit " ++ (show n')]
+                      Just l -> ["LIMIT " ++ (show l)]
+            offset' = case offset of
+                      Nothing -> [""]
+                      Just o -> ["OFFSET " ++ (show o)]
 
 
-create :: Query -> [Char] -> Maybe Int -> [Char]
-create queryType query n = (begin queryType) ++ cnfPrinter (contains) (fromCNF (boolTreeToCNF query')) (end_query n)
+create :: Query -> [Char] -> Maybe Int -> Maybe Int -> [Char]
+create queryType query o l = (begin queryType) ++ cnfPrinter (contains) (fromCNF (boolTreeToCNF query')) (end_query o l)
     where
         query' = case runParser (parseBoolExpr identifier) () "" query of
           Right query'' -> query''
