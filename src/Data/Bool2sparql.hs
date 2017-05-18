@@ -17,6 +17,22 @@ contains  x = showString (    "("
                          ++   ")"
                          )
 
+
+contains'' :: String -> String
+contains''  x = (    "("
+                 ++   "bif:contains(?title, \""     ++ (Prelude.map clean x) ++ "\")"
+                 ++   " OR "
+                 ++   "bif:contains(?abstract, \""  ++ (Prelude.map clean x) ++ "\")"
+                 ++   ")"
+                         )
+
+clean :: Char -> Char
+clean '\"' = '\''
+clean x    = x
+
+contains' :: Show a => a -> ShowS
+contains'  x =     (  show x ++  )
+
 begin :: Query -> String
 begin query = unlines (selectOrcount ++ body)
     where
@@ -37,7 +53,7 @@ begin query = unlines (selectOrcount ++ body)
 end_query :: Maybe Int -> Maybe Int -> String
 end_query offset limit = unlines $ ["}"] ++ offset' ++ limit'
         where
-            limit' = case limit of
+            limit'  = case limit of
                       Nothing -> [""]
                       Just l -> ["LIMIT " ++ (show l)]
             offset' = case offset of
@@ -46,11 +62,15 @@ end_query offset limit = unlines $ ["}"] ++ offset' ++ limit'
 
 
 create :: Query -> [Char] -> Maybe Int -> Maybe Int -> [Char]
-create queryType query o l = (begin queryType) ++ cnfPrinter (contains) (fromCNF (boolTreeToCNF query')) (end_query o l)
+create queryType query o l = (begin queryType) ++ contains'' query ++ (end_query o l)
+
+
+create' :: Query -> [Char] -> Maybe Int -> Maybe Int -> [Char]
+create' queryType query o l = (begin queryType) ++ (contains'' body) ++ (end_query o l)
     where
+        body = cnfPrinter (contains') (fromCNF (boolTreeToCNF query')) ""
         query' = case runParser (parseBoolExpr identifier) () "" query of
           Right query'' -> query''
           Left  error'     -> error $ "BUG at Parsing: " ++ (show error')
-
 
 

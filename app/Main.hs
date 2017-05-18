@@ -29,14 +29,14 @@ options = Options
                       <> help "Option to count number of result only."
                        )
         
-        <*> option auto ( long "Offset of results"
+        <*> option auto ( long "offset"
                         <> short 'o'
                         <> value 0
                         <> metavar "INT"
                         <> help "Offset of the page."
                          )
 
-        <*> option auto ( long "Limit of results"
+        <*> option auto ( long "limit"
                         <> short 'l'
                         <> value 1000
                         <> metavar "INT"
