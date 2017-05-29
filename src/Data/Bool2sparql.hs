@@ -9,6 +9,7 @@ import Data.BoolExpr.Printer
 
 data Query = Count | Get deriving (Show, Read, Eq)
 
+
 contains :: Show a => a -> ShowS
 contains  x = showString (    "("
                          ++   "bif:contains(?title, "     ++ show x ++ ")"
@@ -34,25 +35,39 @@ contains' :: Show a => a -> ShowS
 contains'  x =     (  show x ++  )
 
 begin :: Query -> String
-begin query = unlines (selectOrcount ++ body)
+begin query = unlines body
     where
-        body = [ "?resource a isidore:BibliographicalResource;"
-               , "dcterms:title ?title;"
-               , "dcterms:date ?date;"
-               , "dc:description ?abstract;"
-               , "dc:description ?id;"
-               , "ore:isAggregatedBy ?s."
-               , "?s dcterms:title ?source."
-               , "FILTER"
-               ]
-        
+        body = case query of 
+                 Get -> [ "select ?resource ?title ?date ?abstract ?source where {"
+                        , "?resource a isidore:BibliographicalResource;"
+                        , "dcterms:title ?title;"
+                        , "dcterms:date ?date;"
+                        , "dc:description ?abstract;"
+                        , "ore:isAggregatedBy ?s."
+                        , "?s dcterms:title ?source."
+                        , "FILTER"
+                        ]
+
+                 Count -> [ "select count(distinct ?resource) where {"
+                          , "?resource a isidore:BibliographicalResource;"
+                          , "dcterms:title ?title;"
+                          , "dcterms:date ?date;"
+                          , "dc:description ?abstract;"
+                          , "ore:isAggregatedBy ?s."
+                          , "?s dcterms:title ?source."
+                          , "FILTER"
+                          ]
+
         selectOrcount = case query of
                           Get   -> ["select ?resource ?id ?title ?date ?abstract ?source where {"]
                           Count -> ["select count(?id) where {"]
 
-end_query :: Maybe Int -> Maybe Int -> String
-end_query offset limit = unlines $ ["}"] ++ offset' ++ limit'
+end_query :: Bool -> Maybe Int -> Maybe Int -> String
+end_query order offset limit = unlines $ ["}"] ++ order' ++ offset' ++ limit'
         where
+            order'  = case order of
+                      True  -> ["ORDER BY DESC(?date)"]
+                      False -> [""]
             limit'  = case limit of
                       Nothing -> [""]
                       Just l -> ["LIMIT " ++ (show l)]
@@ -62,15 +77,24 @@ end_query offset limit = unlines $ ["}"] ++ offset' ++ limit'
 
 
 create :: Query -> [Char] -> Maybe Int -> Maybe Int -> [Char]
-create queryType query o l = (begin queryType) ++ contains'' query ++ (end_query o l)
+create queryType query o l = (begin queryType) ++ contains'' query ++ end_query'
+    where
+        end_query' = case queryType of
+                      Get   -> end_query True o l
+                      Count -> end_query False o l
+
+
 
 
 create' :: Query -> [Char] -> Maybe Int -> Maybe Int -> [Char]
-create' queryType query o l = (begin queryType) ++ (contains'' body) ++ (end_query o l)
+create' queryType query o l = (begin queryType) ++ (contains'' body) ++ end_query'
     where
         body = cnfPrinter (contains') (fromCNF (boolTreeToCNF query')) ""
         query' = case runParser (parseBoolExpr identifier) () "" query of
           Right query'' -> query''
           Left  error'     -> error $ "BUG at Parsing: " ++ (show error')
+        end_query' = case queryType of
+                      Get   -> end_query True o l
+                      Count -> end_query False o l
 
 
