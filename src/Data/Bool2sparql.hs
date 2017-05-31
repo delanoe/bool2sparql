@@ -21,9 +21,9 @@ contains  x = showString (    "("
 
 contains'' :: String -> String
 contains''  x = (    "("
-                 ++   "bif:contains(?title, \""     ++ (Prelude.map clean x) ++ "\")"
+                 ++   "bif:contains(?title, \"\'"     ++ (Prelude.map clean x) ++ "\'\")"
                  ++   " OR "
-                 ++   "bif:contains(?abstract, \""  ++ (Prelude.map clean x) ++ "\")"
+                 ++   "bif:contains(?abstract, \"\'"  ++ (Prelude.map clean x) ++ "\'\")"
                  ++   ")"
                          )
 
@@ -82,8 +82,6 @@ create queryType query o l = (begin queryType) ++ contains'' query ++ end_query'
         end_query' = case queryType of
                       Get   -> end_query True o l
                       Count -> end_query False o l
-
-
 
 
 create' :: Query -> [Char] -> Maybe Int -> Maybe Int -> [Char]
