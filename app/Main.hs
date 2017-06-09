@@ -6,7 +6,7 @@ import Options.Applicative
 import Data.Semigroup ((<>))
 
 -- import Safe (headMay)
-import Data.Bool2sparql
+import Data.Bool2sparql.Query
 
 
 
@@ -46,8 +46,8 @@ options = Options
 
 
 bool2sparql :: Options -> IO ()
-bool2sparql (Options q True  _ _) = putStrLn $ create Count q Nothing Nothing
-bool2sparql (Options q False o l) = putStrLn $ create Get   q (Just o) (Just l)
+bool2sparql (Options q True  _ _) = putStrLn $ create' Count q Nothing Nothing
+bool2sparql (Options q False o l) = putStrLn $ create' Get   q (Just o) (Just l)
 
 
 main :: IO ()

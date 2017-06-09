@@ -1,4 +1,4 @@
-module Data.Bool2sparql where
+module Data.Bool2sparql.Query where
 
 
 import Text.Parsec (runParser)
@@ -21,9 +21,9 @@ contains  x = showString (    "("
 
 contains'' :: String -> String
 contains''  x = (    "("
-                 ++   "bif:contains(?title, \"\'"     ++ (Prelude.map clean x) ++ "\'\")"
+                 ++   "bif:contains(?title, \""     ++ (Prelude.map clean x) ++ "\")"
                  ++   " OR "
-                 ++   "bif:contains(?abstract, \"\'"  ++ (Prelude.map clean x) ++ "\'\")"
+                 ++   "bif:contains(?abstract, \""  ++ (Prelude.map clean x) ++ "\")"
                  ++   ")"
                          )
 
@@ -87,8 +87,9 @@ create queryType query o l = (begin queryType) ++ contains'' query ++ end_query'
 create' :: Query -> [Char] -> Maybe Int -> Maybe Int -> [Char]
 create' queryType query o l = (begin queryType) ++ (contains'' body) ++ end_query'
     where
-        body = cnfPrinter (contains') (fromCNF (boolTreeToCNF query')) ""
-        query' = case runParser (parseBoolExpr identifier) () "" query of
+        -- body = cnfPrinter (showString) (fromCNF (boolTreeToCNF query')) ""
+        body = boolExprPrinter (showString) (query') ""
+        query' = case runParser (parseBoolExpr parseConstant) () "" query of
           Right query'' -> query''
           Left  error'     -> error $ "BUG at Parsing: " ++ (show error')
         end_query' = case queryType of
